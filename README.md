@@ -1,325 +1,215 @@
-# Sanity MCP Server <!-- omit in toc -->
+# Spotify MCP Server
 
-> Transform your content operations with AI-powered tools for Sanity. Create, manage, and explore your content through natural language conversations in your favorite AI-enabled editor.
+> Connect your Spotify account to AI tools and automate your music experience with the Model Context Protocol (MCP).
 
-Sanity MCP Server implements the [Model Context Protocol](https://modelcontextprotocol.ai) to connect your Sanity projects with AI tools like Claude, Cursor, and VS Code. It enables AI models to understand your content structure and perform operations through natural language instructions.
+The **Spotify MCP Server** implements the [Model Context Protocol](https://modelcontextprotocol.ai) to bridge your Spotify account with AI-powered tools like Cursor, Claude, VS Code, and more. It enables AI models to search, analyze, and manage your Spotify music library, playlists, and playback through natural language instructions.
 
-## ✨ Key Features <!-- omit in toc -->
+---
 
-- 🤖 **Content Intelligence**: Let AI explore and understand your content library
-- 🔄 **Content Operations**: Automate tasks through natural language instructions
-- 📊 **Schema-Aware**: AI respects your content structure and validation rules
-- 🚀 **Release Management**: Plan and organize content releases effortlessly
-- 🔍 **Semantic Search**: Find content based on meaning, not just keywords
+## ✨ Key Features
 
-## Table of Contents <!-- omit in toc -->
+- **Music Search & Discovery**: Find tracks, albums, artists, playlists, shows, and episodes
+- **Playlist Management**: View, create, update, reorder, and manage playlists
+- **User Library Access**: Access and modify your saved tracks, albums, and shows
+- **Personalized Recommendations**: Get music suggestions based on your taste
+- **Audio Analysis**: Retrieve audio features (danceability, energy, tempo, etc.) for tracks
+- **Playback Control**: (Premium only) Play, pause, skip, and control playback devices
+- **User Insights**: View your top tracks, artists, and listening history
+- **Queue Management**: Add tracks to your queue and view upcoming songs
+- **Device Management**: Transfer playback between devices
 
-- [🔌 Quickstart](#-quickstart)
-  - [Prerequisites](#prerequisites)
-  - [Add configuration for the Sanity MCP server](#add-configuration-for-the-sanity-mcp-server)
-- [🛠️ Available Tools](#️-available-tools)
-- [⚙️ Configuration](#️-configuration)
-  - [🔑 API Tokens and Permissions](#-api-tokens-and-permissions)
-  - [👥 User Roles](#-user-roles)
-- [📦 Node.js Environment Setup](#-nodejs-environment-setup)
-  - [🛠 Quick Setup for Node Version Manager Users](#-quick-setup-for-node-version-manager-users)
-  - [🤔 Why Is This Needed?](#-why-is-this-needed)
-  - [🔍 Troubleshooting](#-troubleshooting)
-- [💻 Development](#-development)
-  - [Debugging](#debugging)
+---
 
-## 🔌 Quickstart
+## 🚀 Quickstart Guide
 
 ### Prerequisites
 
-Before you can use the MCP server, you need to:
+- A Spotify account (Premium required for playback control)
+- Spotify API credentials (see below)
+- Node.js 18 or newer
 
-1. **Deploy your Sanity Studio with schema manifest**
+### 1. Obtain Spotify API Credentials
 
-   The MCP server needs access to your content structure to work effectively. Deploy your schema manifest using one of these approaches:
+1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
+2. Create a new application
+3. Note your **Client ID** and **Client Secret**
+4. Set a **Redirect URI** (e.g., `http://localhost:8888/callback`)
+5. Generate an **Access Token** and **Refresh Token** (see [Spotify Authorization Guide](https://developer.spotify.com/documentation/web-api/tutorials/code-flow))
 
-   ```bash
-   # Option A: If you have the CLI installed globally
-   npm install -g sanity
-   cd /path/to/studio
-   sanity schema deploy
+### 2. Set Environment Variables
 
-   # Option B: Update your Studio
-   cd /path/to/studio
-   npm update sanity
-   npx sanity schema deploy
-   ```
+Create a `.env` file in your project root with the following:
 
-   When running in CI environments without Sanity login, you'll need to provide an auth token:
+```
+SPOTIFY_CLIENT_ID=your-client-id
+SPOTIFY_CLIENT_SECRET=your-client-secret
+SPOTIFY_REDIRECT_URI=your-redirect-uri
+SPOTIFY_API_TOKEN=your-access-token
+SPOTIFY_REFRESH_TOKEN=your-refresh-token
+# Optional:
+MAX_TOOL_TOKEN_OUTPUT=50000
+```
 
-   ```bash
-   SANITY_AUTH_TOKEN=<token> sanity schema deploy
-   ```
+### 3. Install and Run the Server
 
-   > [!NOTE]
-   > Schema deployment requires Sanity CLI version 3.88.1 or newer.
+Install dependencies:
 
-2. **Get your API credentials**
-   - Project ID
-   - Dataset name
-   - API token with appropriate permissions
+```bash
+npm install
+```
 
-This MCP server can be used with any application that supports the Model Context Protocol. Here are some popular examples:
+Build the server:
 
-- [Claude Desktop](https://modelcontextprotocol.io/quickstart/user)
-- [Cursor IDE](https://docs.cursor.com/context/model-context-protocol)
-- [Visual Studio Code](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
-- Custom MCP-compatible applications
+```bash
+npm run build
+```
 
-### Add configuration for the Sanity MCP server
+Start the server:
 
-To use the Sanity MCP server, add the following configuration to your application's MCP settings:
+```bash
+npm start
+```
+
+### 4. Connect from Your AI Tool
+
+Add the following to your MCP-compatible application's configuration (example for Cursor):
 
 ```json
 {
   "mcpServers": {
-    "sanity": {
+    "spotify": {
       "command": "npx",
-      "args": ["-y", "@sanity/mcp-server@latest"],
+      "args": ["-y", "@tdp2003/spotify-mcp@latest"],
       "env": {
-        "SANITY_PROJECT_ID": "your-project-id",
-        "SANITY_DATASET": "production",
-        "SANITY_API_TOKEN": "your-sanity-api-token",
-        "MCP_USER_ROLE": "developer"
+        "SPOTIFY_CLIENT_ID": "your-client-id",
+        "SPOTIFY_CLIENT_SECRET": "your-client-secret",
+        "SPOTIFY_REDIRECT_URI": "your-redirect-uri",
+        "SPOTIFY_API_TOKEN": "your-access-token",
+        "SPOTIFY_REFRESH_TOKEN": "your-refresh-token"
       }
     }
   }
 }
 ```
 
-For a complete list of all required and optional environment variables, see the [Configuration section](#️-configuration).
-
-The exact location of this configuration will depend on your application:
-
-| Application    | Configuration Location                            |
-| -------------- | ------------------------------------------------- |
-| Claude Desktop | Claude Desktop configuration file                 |
-| Cursor         | Workspace or global settings                      |
-| VS Code        | Workspace or user settings (depends on extension) |
-| Custom Apps    | Refer to your app's MCP integration docs          |
-
-You don't get it to work? See the section on [Node.js configuration](#-nodejs-environment-setup).
+---
 
 ## 🛠️ Available Tools
 
-### Context & Setup <!-- omit in toc -->
+> **Note:** Always call `get_initial_context` first to initialize your Spotify connection before using any other tools.
 
-- **get_initial_context** – IMPORTANT: Must be called before using any other tools to initialize context and get usage instructions.
-- **get_sanity_config** – Retrieves current Sanity configuration (projectId, dataset, apiVersion, etc.)
+### Context & Setup
+- **get_initial_context** – Initializes your Spotify connection and provides usage instructions.
 
-### Document Operations <!-- omit in toc -->
+### Playlist Operations
+- **get_user_playlists** – Retrieve your playlists (with metadata, pagination, etc.)
+- **create_playlist** – Create a new playlist (name, description, privacy, collaborative)
+- **update_playlist_details** – Update playlist name, description, privacy, or collaborative status
+- **add_tracks_to_playlist** – Add tracks to a playlist (batch up to 100, specify position)
+- **remove_tracks_from_playlist** – Remove tracks from a playlist (by URI and/or position)
+- **reorder_playlist_tracks** – Move tracks within a playlist
 
-- **create_document** – Create a new document with AI-generated content based on instructions
-- **update_document** – Update an existing document with AI-generated content based on instructions
-- **patch_document** - Apply direct patch operations to modify specific parts of a document without using AI generation
-- **transform_document** – Transform document content while preserving formatting and structure, ideal for text replacements and style corrections
-- **translate_document** – Translate document content to another language while preserving formatting and structure
-- **query_documents** – Execute GROQ queries to search for and retrieve content
-- **document_action** – Perform document actions like publishing, unpublishing, or deleting documents
+### Music Search & Discovery
+- **search** – Find tracks, albums, artists, playlists, shows, and episodes
+- **browse** – Discover featured playlists, new releases, and categories
+- **recommendations** – Get personalized track recommendations
 
-### Release Management <!-- omit in toc -->
+### User Library & Insights
+- **get_saved_tracks** – View your saved tracks
+- **get_saved_albums** – View your saved albums
+- **get_recently_played** – View your listening history
+- **get_top_tracks** – View your top tracks
+- **get_top_artists** – View your top artists
 
-- **list_releases** – List content releases, optionally filtered by state
-- **create_release** – Create a new content release
-- **edit_release** – Update metadata for an existing release
-- **schedule_release** – Schedule a release to publish at a specific time
-- **release_action** – Perform actions on releases (publish, archive, unarchive, unschedule, delete)
+### Playback Control (Premium)
+- **get_current_playback** – Get current playing track and device info
+- **playback_control** – Play, pause, skip, control volume
+- **queue_management** – Add tracks to queue, view upcoming tracks
+- **device_management** – Transfer playback between devices
 
-### Version Management <!-- omit in toc -->
+### Audio Analysis
+- **get_audio_features** – Retrieve audio features for tracks (danceability, energy, tempo, etc.)
 
-- **create_version** – Create a version of a document for a specific release
-- **discard_version** – Delete a specific version document from a release
-- **mark_for_unpublish** – Mark a document to be unpublished when a specific release is published
+---
 
-### Dataset Management <!-- omit in toc -->
+## ⚙️ Environment Variables
 
-- **list_datasets** – List all datasets in the project
-- **create_dataset** – Create a new dataset
-- **update_dataset** – Modify dataset settings
+| Variable                | Description                                 | Required |
+|-------------------------|---------------------------------------------|----------|
+| SPOTIFY_CLIENT_ID       | Spotify client ID                           | ✅       |
+| SPOTIFY_CLIENT_SECRET   | Spotify client secret                       | ✅       |
+| SPOTIFY_REDIRECT_URI    | Spotify redirect URI                        | ✅       |
+| SPOTIFY_API_TOKEN       | Spotify access token                        | ✅       |
+| SPOTIFY_REFRESH_TOKEN   | Spotify refresh token                       | ✅       |
+| MAX_TOOL_TOKEN_OUTPUT   | Max token output for tool responses (default 50000) | ❌       |
 
-### Schema Information <!-- omit in toc -->
+---
 
-- **get_schema** – Get schema details, either full schema or for a specific type
-- **list_workspace_schemas** – Get a list of all available workspace schema names
+## 👥 User Roles
 
-### GROQ Support <!-- omit in toc -->
+- **developer**: Full access to all tools and features
+- **editor**: Restricted to content-focused tools (no admin features)
 
-- **get_groq_specification** – Get the GROQ language specification summary
+Set the role in your MCP client configuration if supported.
 
-### Embeddings & Semantic Search <!-- omit in toc -->
-
-- **list_embeddings_indices** – List all available embeddings indices
-- **semantic_search** – Perform semantic search on an embeddings index
-
-### Project Information <!-- omit in toc -->
-
-- **list_projects** – List all Sanity projects associated with your account
-- **get_project_studios** – Get studio applications linked to a specific project
-
-## ⚙️ Configuration
-
-The server takes the following environment variables:
-
-| Variable                | Description                                                                                                                                                                      | Required |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `SANITY_API_TOKEN`      | Your Sanity API token                                                                                                                                                            | ✅       |
-| `SANITY_PROJECT_ID`     | Your Sanity project ID                                                                                                                                                           | ✅       |
-| `SANITY_DATASET`        | The dataset to use                                                                                                                                                               | ✅       |
-| `MCP_USER_ROLE`         | Determines tool access level (developer or editor)                                                                                                                               | ✅       |
-| `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                                     | ❌       |
-| `MAX_TOOL_TOKEN_OUTPUT` | Maximum token output for tool responses (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data | ❌       |
-
-> [!WARNING] > **Using AI with Production Datasets**
-> When configuring the MCP server with a token that has write access to a production dataset, please be aware that the AI can perform destructive actions like creating, updating, or deleting content. This is not a concern if you're using a read-only token. While we are actively developing guardrails, you should exercise caution and consider using a development/staging dataset for testing AI operations that require write access.
-
-### 🔑 API Tokens and Permissions
-
-The MCP server requires appropriate API tokens and permissions to function correctly. Here's what you need to know:
-
-1. **Generate a Robot Token**:
-
-   - Go to your project's management console: Settings > API > Tokens
-   - Click "Add new token"
-   - Create a dedicated token for your MCP server usage
-   - Store the token securely - it's only shown once!
-
-2. **Required Permissions**:
-
-   - The token needs appropriate permissions based on your usage
-   - For basic read operations: `viewer` role is sufficient
-   - For content management: `editor` or `developer` role recommended
-   - For advanced operations (like managing datasets): `administrator` role may be needed
-
-3. **Dataset Access**:
-
-   - Public datasets: Content is readable by unauthenticated users
-   - Private datasets: Require proper token authentication
-   - Draft and versioned content: Only accessible to authenticated users with appropriate permissions
-
-4. **Security Best Practices**:
-   - Use separate tokens for different environments (development, staging, production)
-   - Never commit tokens to version control
-   - Consider using environment variables for token management
-   - Regularly rotate tokens for security
-
-### 👥 User Roles
-
-The server supports two user roles:
-
-- **developer**: Access to all tools
-- **editor**: Content-focused tools without project administration
+---
 
 ## 📦 Node.js Environment Setup
 
-> **Important for Node Version Manager Users**: If you use `nvm`, `mise`, `fnm`, `nvm-windows` or similar tools, you'll need to follow the setup steps below to ensure MCP servers can access Node.js. This is a one-time setup that will save you troubleshooting time later. This is [an ongoing issue](https://github.com/modelcontextprotocol/servers/issues/64) with MCP servers.
-
-### 🛠 Quick Setup for Node Version Manager Users
-
-1. First, activate your preferred Node.js version:
-
-   ```bash
-   # Using nvm
-   nvm use 20   # or your preferred version
-
-   # Using mise
-   mise use node@20
-
-   # Using fnm
-   fnm use 20
-   ```
-
-2. Then, create the necessary symlinks (choose your OS):
-
-   **On macOS/Linux:**
-
-   ```bash
-   sudo ln -sf "$(which node)" /usr/local/bin/node && sudo ln -sf "$(which npx)" /usr/local/bin/npx
-   ```
-
-   > [!NOTE]
-   > While using `sudo` generally requires caution, it's safe in this context because:
-   >
-   > - We're only creating symlinks to your existing Node.js binaries
-   > - The target directory (`/usr/local/bin`) is a standard system location for user-installed programs
-   > - The symlinks only point to binaries you've already installed and trust
-   > - You can easily remove these symlinks later with `sudo rm`
-
-   **On Windows (PowerShell as Administrator):**
-
-   ```powershell
-   New-Item -ItemType SymbolicLink -Path "C:\Program Files\nodejs\node.exe" -Target (Get-Command node).Source -Force
-   New-Item -ItemType SymbolicLink -Path "C:\Program Files\nodejs\npx.cmd" -Target (Get-Command npx).Source -Force
-   ```
-
-3. Verify the setup:
-   ```bash
-   # Should show your chosen Node version
-   /usr/local/bin/node --version  # macOS/Linux
-   "C:\Program Files\nodejs\node.exe" --version  # Windows
-   ```
-
-### 🤔 Why Is This Needed?
-
-MCP servers are launched by calling `node` and `npx` binaries directly. When using Node version managers, these binaries are managed in isolated environments that aren't automatically accessible to system applications. The symlinks above create a bridge between your version manager and the system paths that MCP servers use.
-
-### 🔍 Troubleshooting
-
-If you switch Node versions often:
-
-- Remember to update your symlinks when changing Node versions
-- You can create a shell alias or script to automate this:
-  ```bash
-  # Example alias for your .bashrc or .zshrc
-  alias update-node-symlinks='sudo ln -sf "$(which node)" /usr/local/bin/node && sudo ln -sf "$(which npx)" /usr/local/bin/npx'
-  ```
-
-To remove the symlinks later:
+If you use a Node version manager (`nvm`, `mise`, `fnm`, etc.), you may need to create symlinks so MCP servers can access Node.js:
 
 ```bash
-# macOS/Linux
-sudo rm /usr/local/bin/node /usr/local/bin/npx
-
-# Windows (PowerShell as Admin)
-Remove-Item "C:\Program Files\nodejs\node.exe", "C:\Program Files\nodejs\npx.cmd"
+sudo ln -sf "$(which node)" /usr/local/bin/node && sudo ln -sf "$(which npx)" /usr/local/bin/npx
 ```
+
+Update these symlinks if you change Node versions. Remove them with:
+
+```bash
+sudo rm /usr/local/bin/node /usr/local/bin/npx
+```
+
+---
 
 ## 💻 Development
 
 Install dependencies:
 
 ```bash
-pnpm install
+npm install
 ```
 
 Build and run in development mode:
 
 ```bash
-pnpm run dev
+npm run dev
 ```
 
 Build the server:
 
 ```bash
-pnpm run build
+npm run build
 ```
 
 Run the built server:
 
 ```bash
-pnpm start
+npm start
 ```
 
-### Debugging
+---
 
-For debugging, you can use the MCP inspector:
+## 🧑‍💻 Debugging
+
+You can use the MCP inspector for debugging:
 
 ```bash
-npx @modelcontextprotocol/inspector -e SANITY_API_TOKEN=<token> -e SANITY_PROJECT_ID=<project_id> -e SANITY_DATASET=<ds> -e MCP_USER_ROLE=developer node path/to/build/index.js
+npx @modelcontextprotocol/inspector -e SPOTIFY_CLIENT_ID=... -e SPOTIFY_CLIENT_SECRET=... -e SPOTIFY_REDIRECT_URI=... -e SPOTIFY_API_TOKEN=... -e SPOTIFY_REFRESH_TOKEN=... node path/to/build/index.js
 ```
 
-This will provide a web interface for inspecting and testing the available tools.
+This provides a web interface for inspecting and testing the available tools.
+
+---
+
+## License
+
+MIT
