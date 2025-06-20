@@ -5,7 +5,7 @@ export function enforceInitialContextMiddleware(toolName: string) {
 
   if (!contextStore.hasInitialContext()) {
     throw new Error(
-      'Spotify initial context has not been retrieved. Please call get_initial_context tool first to initialize your Spotify connection get usage instructions.',
+      'Spotify initial context has not been retrieved. Please call get_initial_context tool first to initialize your Spotify connection and get usage instructions.',
     )
   }
 }

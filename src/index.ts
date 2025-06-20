@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js'
-import {registerAllPrompts} from './prompts/register.js'
-import {registerAllResources} from './resources/register.js'
 import {registerAllTools} from './tools/register.js'
 import {env} from './config/env.js'
 import {VERSION} from './config/version.js'
 
-const MCP_SERVER_NAME = '@sanity/mcp-server'
+const MCP_SERVER_NAME = '@tdp2003/spotify-mcp'
 
 async function initializeServer() {
+  if (!env.success) {
+    throw new Error('Environment variables are not properly configured')
+  }
+
   const server = new McpServer({
     name: MCP_SERVER_NAME,
     version: VERSION,
   })
 
-  registerAllTools(server, env.data?.MCP_USER_ROLE)
-  registerAllPrompts(server)
-  registerAllResources(server)
+  registerAllTools(server)
 
   return server
 }
