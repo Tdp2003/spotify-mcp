@@ -4,7 +4,7 @@ import {getInitialContextTool, GetInitialContextToolParams} from './getInitialCo
 export function registerContextTools(server: McpServer) {
   server.tool(
     'get_initial_context',
-    'IMPORTANT: This tool must be called before using any other tools. It will get initial context and usage instructions for this MCP server. ',
+    'IMPORTANT: This tool must be called before using any other tools. It will initialize your Spotify connection and provide usage instructions for this MCP server. ',
     GetInitialContextToolParams.shape,
     getInitialContextTool,
   )
