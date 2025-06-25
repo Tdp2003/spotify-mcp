@@ -8,15 +8,15 @@ The **Spotify MCP Server** implements the [Model Context Protocol](https://model
 
 ## ✨ Key Features
 
-- **Music Search & Discovery**: Find tracks, albums, artists, playlists, shows, and episodes
-- **Playlist Management**: View, create, update, reorder, and manage playlists
-- **User Library Access**: Access and modify your saved tracks, albums, and shows
-- **Personalized Recommendations**: Get music suggestions based on your taste
-- **Audio Analysis**: Retrieve audio features (danceability, energy, tempo, etc.) for tracks
-- **Playback Control**: (Premium only) Play, pause, skip, and control playback devices
-- **User Insights**: View your top tracks, artists, and listening history
-- **Queue Management**: Add tracks to your queue and view upcoming songs
-- **Device Management**: Transfer playback between devices
+- **🎵 Music Search & Discovery**: Find tracks, albums, artists, playlists, shows, and episodes
+- **📝 Playlist Management**: View, create, update, reorder, and manage playlists
+- **📚 User Library Access**: Access and modify your saved tracks, albums, and shows
+- **🎯 Personalized Recommendations**: Get music suggestions based on your taste
+- **📊 Audio Analysis**: Retrieve audio features (danceability, energy, tempo, etc.) for tracks
+- **🎧 Playback Control**: (Premium only) Play, pause, skip, and control playback devices
+- **📈 User Insights**: View your top tracks, artists, and listening history
+- **🔄 Queue Management**: Add tracks to your queue and view upcoming songs
+- **📱 Device Management**: Transfer playback between devices
 
 ---
 
@@ -28,18 +28,18 @@ The **Spotify MCP Server** implements the [Model Context Protocol](https://model
 - Spotify API credentials (see below)
 - Node.js 18 or newer
 
-### 1. Obtain Spotify API Credentials
+### Step 1: Get Spotify API Credentials
 
 1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
 2. Create a new application
 3. Note your **Client ID** and **Client Secret**
 4. Set the **Redirect URI** to: `http://127.0.0.1:8000/callback`
 
-### 2. Set Environment Variables
+### Step 2: Set Environment Variables
 
-Create a `.env` file in your project root with the following:
+Create a `.env` file in your project root:
 
-```
+```env
 SPOTIFY_CLIENT_ID=your-client-id
 SPOTIFY_CLIENT_SECRET=your-client-secret
 SPOTIFY_REDIRECT_URI=http://127.0.0.1:8000/callback
@@ -47,29 +47,22 @@ SPOTIFY_REDIRECT_URI=http://127.0.0.1:8000/callback
 
 **Note**: You no longer need to manually obtain access tokens! The server will handle the OAuth flow automatically.
 
-### 3. Install and Run the Server
-
-Install dependencies:
+### Step 3: Install and Run
 
 ```bash
+# Install dependencies
 npm install
-```
 
-Build the server:
-
-```bash
+# Build the server
 npm run build
-```
 
-Start the server:
-
-```bash
+# Start the server
 npm start
 ```
 
-### 4. Connect from Your AI Tool
+### Step 4: Connect from Your AI Tool
 
-Add the following to your MCP-compatible application's configuration (example for Cursor):
+Add this configuration to your MCP-compatible application (example for Cursor):
 
 ```json
 {
@@ -87,7 +80,7 @@ Add the following to your MCP-compatible application's configuration (example fo
 }
 ```
 
-### 5. Complete Authorization
+### Step 5: Complete Authorization
 
 1. Call the `get_initial_context` tool in your AI application
 2. If not already authorized, you'll receive an authorization URL
@@ -99,39 +92,201 @@ Add the following to your MCP-compatible application's configuration (example fo
 
 ## 🛠️ Available Tools
 
-> **Note:** Always call `get_initial_context` first to initialize your Spotify connection before using any other tools.
+> **⚠️ Important**: Always call `get_initial_context` first to initialize your Spotify connection before using any other tools.
 
-### Context & Setup
-- **get_initial_context** – Initializes your Spotify connection and provides usage instructions.
+### 🔧 Context & Setup
 
-### Playlist Operations
-- **get_user_playlists** – Retrieve your playlists (with metadata, pagination, etc.)
-- **create_playlist** – Create a new playlist (name, description, privacy, collaborative)
-- **update_playlist_details** – Update playlist name, description, privacy, or collaborative status
-- **add_tracks_to_playlist** – Add tracks to a playlist (batch up to 100, specify position)
-- **remove_tracks_from_playlist** – Remove tracks from a playlist (by URI and/or position)
-- **reorder_playlist_tracks** – Move tracks within a playlist
+#### `get_initial_context`
+**Required first step** - Initializes your Spotify connection and provides usage instructions. This tool must be called before any other operations.
 
-### Music Search & Discovery
-- **search** – Find tracks, albums, artists, playlists, shows, and episodes
-- **browse** – Discover featured playlists, new releases, and categories
-- **recommendations** – Get personalized track recommendations
+**What it does:**
+- Validates your Spotify API credentials
+- Initiates OAuth flow if needed
+- Retrieves your user profile and account information
+- Provides connection status and available features
+- Returns usage instructions for the AI assistant
 
-### User Library & Insights
-- **get_saved_tracks** – View your saved tracks
-- **get_saved_albums** – View your saved albums
-- **get_recently_played** – View your listening history
-- **get_top_tracks** – View your top tracks
-- **get_top_artists** – View your top artists
+---
 
-### Playback Control (Premium)
-- **get_current_playback** – Get current playing track and device info
-- **playback_control** – Play, pause, skip, control volume
-- **queue_management** – Add tracks to queue, view upcoming tracks
-- **device_management** – Transfer playback between devices
+### 📝 Playlist Operations
 
-### Audio Analysis
-- **get_audio_features** – Retrieve audio features for tracks (danceability, energy, tempo, etc.)
+#### `get_user_playlists`
+Retrieve playlists for the current user or a specific user.
+
+**Parameters:**
+- `limit` (optional): Number of playlists to return (1-50, default: 20)
+- `offset` (optional): Index of the first playlist to return (default: 0)
+- `userId` (optional): User ID to get playlists for (defaults to current user)
+
+**Returns:** Playlist metadata including name, description, track count, privacy settings, and owner information.
+
+#### `create_playlist`
+Create a new playlist with customizable settings.
+
+**Parameters:**
+- `name` (required): Playlist name
+- `description` (optional): Playlist description
+- `public` (optional): Whether playlist is public (default: false)
+- `collaborative` (optional): Whether playlist is collaborative (default: false)
+- `userId` (optional): User ID to create playlist for (defaults to current user)
+
+**Returns:** Created playlist details including Spotify URI and ID.
+
+#### `update_playlist_details`
+Update playlist metadata including name, description, privacy settings, and collaborative status.
+
+**Parameters:**
+- `playlistId` (required): Spotify playlist ID
+- `name` (optional): New playlist name
+- `description` (optional): New playlist description
+- `public` (optional): New public/private setting
+- `collaborative` (optional): New collaborative setting
+
+**Returns:** Updated playlist details with change summary.
+
+#### `add_tracks_to_playlist`
+Add tracks to a playlist with precise position control.
+
+**Parameters:**
+- `playlistId` (required): Spotify playlist ID
+- `uris` (required): Array of Spotify track URIs (max 100)
+- `position` (optional): Position to insert tracks (defaults to end)
+
+**Returns:** Confirmation with snapshot ID and updated track count.
+
+#### `remove_tracks_from_playlist`
+Remove tracks from a playlist with precision control.
+
+**Parameters:**
+- `playlistId` (required): Spotify playlist ID
+- `tracks` (required): Array of track objects with URIs and optional positions
+- `snapshot_id` (optional): Playlist snapshot ID for concurrency safety
+
+**Returns:** Confirmation with snapshot ID and removal details.
+
+#### `reorder_playlist_tracks`
+Reorder tracks within a playlist by moving a range of tracks to a new position.
+
+**Parameters:**
+- `playlistId` (required): Spotify playlist ID
+- `range_start` (required): Starting position of tracks to move
+- `range_length` (required): Number of tracks to move
+- `insert_before` (required): Position to move tracks to
+- `snapshot_id` (optional): Playlist snapshot ID for concurrency safety
+
+**Returns:** Confirmation with snapshot ID and reorder details.
+
+---
+
+### 🔍 Music Search & Discovery
+
+#### `search`
+Search Spotify's catalog for albums, artists, tracks, playlists, shows, and episodes.
+
+**Parameters:**
+- `query` (required): Search query string
+- `type` (optional): Content type filter (track, album, artist, playlist, show, episode)
+- `limit` (optional): Number of results (1-50, default: 20)
+- `offset` (optional): Result offset (default: 0)
+- `market` (optional): Country code for market-specific results
+
+**Returns:** Detailed metadata for each result type with pagination information.
+
+#### `get_new_releases`
+Get new album releases available on Spotify.
+
+**Parameters:**
+- `limit` (optional): Number of releases (1-50, default: 20)
+- `offset` (optional): Result offset (default: 0)
+- `country` (optional): Country code for regional releases
+
+**Returns:** Recently released albums with artist information, release dates, and metadata.
+
+#### `get_featured_playlists`
+Get featured playlists from Spotify's editorial team.
+
+**Parameters:**
+- `limit` (optional): Number of playlists (1-50, default: 20)
+- `offset` (optional): Result offset (default: 0)
+- `country` (optional): Country code for regional content
+- `locale` (optional): Language/locale for descriptions
+
+**Returns:** Curated playlists prominently featured on Spotify with descriptions and metadata.
+
+---
+
+### 👤 User Library & Insights
+
+#### `get_user_top_items`
+Get the current user's top artists or tracks based on calculated affinity.
+
+**Parameters:**
+- `type` (required): Item type ('artists' or 'tracks')
+- `time_range` (optional): Time range ('short_term' ~4 weeks, 'medium_term' ~6 months, 'long_term' ~1 year)
+- `limit` (optional): Number of items (1-50, default: 20)
+- `offset` (optional): Result offset (default: 0)
+
+**Returns:** User's top items with popularity scores and metadata.
+
+---
+
+### 🎧 Playback Control (Premium Only)
+
+*Note: These tools require a Spotify Premium account*
+
+#### `get_current_playback`
+Get current playing track and device information.
+
+**Returns:** Current playback state including track, device, and queue information.
+
+#### `playback_control`
+Control playback (play, pause, skip, volume).
+
+**Parameters:**
+- `action` (required): Playback action (play, pause, next, previous, volume)
+- `device_id` (optional): Target device ID
+- `volume_percent` (optional): Volume level (0-100, for volume action)
+
+**Returns:** Confirmation of playback action.
+
+#### `queue_management`
+Add tracks to queue and view upcoming tracks.
+
+**Parameters:**
+- `action` (required): Queue action ('add' or 'get')
+- `uris` (optional): Track URIs to add (for 'add' action)
+- `device_id` (optional): Target device ID
+
+**Returns:** Queue information or confirmation of track addition.
+
+#### `device_management`
+Transfer playback between devices.
+
+**Parameters:**
+- `device_id` (required): Target device ID
+- `play` (optional): Whether to start playback on transfer (default: false)
+
+**Returns:** Confirmation of device transfer.
+
+---
+
+### 📊 Audio Analysis
+
+#### `get_audio_features`
+Retrieve audio features for tracks.
+
+**Parameters:**
+- `track_ids` (required): Array of Spotify track IDs
+
+**Returns:** Audio features including:
+- **Danceability**: How suitable for dancing (0.0-1.0)
+- **Energy**: Intensity and power (0.0-1.0)
+- **Speechiness**: Presence of spoken words (0.0-1.0)
+- **Acousticness**: Whether track is acoustic (0.0-1.0)
+- **Instrumentalness**: Whether track has no vocals (0.0-1.0)
+- **Liveness**: Presence of audience (0.0-1.0)
+- **Valence**: Musical positivity/happiness (0.0-1.0)
+- **Tempo**: Speed in beats per minute (BPM)
 
 ---
 
