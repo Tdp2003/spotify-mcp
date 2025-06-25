@@ -23,6 +23,10 @@ type Params = z.infer<typeof AddTracksToPlaylistToolParams>
 async function tool(params: Params) {
   const spotifyClient = getDefaultSpotifyClient()
   
+  if (params.uris.length === 0) {
+    throw new Error('No track URIs provided')
+  }
+  
   // Validate that all URIs are properly formatted
   const invalidUris = params.uris.filter(uri => !uri.startsWith('spotify:track:'))
   if (invalidUris.length > 0) {
@@ -41,17 +45,15 @@ async function tool(params: Params) {
     throw new Error('You do not have permission to modify this playlist. You must be the owner or the playlist must be collaborative.')
   }
 
-  const addOptions: any = {
-    uris: params.uris,
-  }
-
-  // Add position if specified
+  // Add tracks to playlist using the correct method signature
+  let response
   if (params.position !== undefined) {
-    addOptions.position = params.position
+    // Pass position as third parameter when specified
+    response = await spotifyClient.addTracksToPlaylist(params.playlistId, params.uris, { position: params.position })
+  } else {
+    // When no position specified, only pass playlist ID and URIs
+    response = await spotifyClient.addTracksToPlaylist(params.playlistId, params.uris)
   }
-
-  // Add tracks to playlist
-  const response = await spotifyClient.addTracksToPlaylist(params.playlistId, params.uris, addOptions)
   
   // Get updated playlist info
   const updatedPlaylist = await spotifyClient.getPlaylist(params.playlistId)

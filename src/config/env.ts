@@ -18,7 +18,7 @@ const EnvSchema = z.object({
 
 export const env = EnvSchema.safeParse(process.env)
 
+// Don't exit on failure - let the OAuth flow handle missing tokens
 if (!env.success) {
-  console.error('Invalid environment variables', env.error.format())
-  process.exit(1)
+  console.warn('Some environment variables missing - OAuth flow may be required')
 }

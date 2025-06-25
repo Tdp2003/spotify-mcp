@@ -30,10 +30,12 @@
     "dotenv": "^16.4.7",
     "fast-xml-parser": "^5.2.5",
     "gpt-tokenizer": "^3.0.1",
+    "open": "^10.1.2",
     "spotify-web-api-node": "^5.0.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "@types/node": "^22.13.11",
     "@types/spotify-web-api-node": "^5.0.11",
     "@typescript-eslint/eslint-plugin": "^8.29.1",

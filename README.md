@@ -33,8 +33,7 @@ The **Spotify MCP Server** implements the [Model Context Protocol](https://model
 1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
 2. Create a new application
 3. Note your **Client ID** and **Client Secret**
-4. Set a **Redirect URI** (e.g., `http://localhost:8888/callback`)
-5. Generate an **Access Token** and **Refresh Token** (see [Spotify Authorization Guide](https://developer.spotify.com/documentation/web-api/tutorials/code-flow))
+4. Set the **Redirect URI** to: `http://127.0.0.1:8000/callback`
 
 ### 2. Set Environment Variables
 
@@ -43,12 +42,10 @@ Create a `.env` file in your project root with the following:
 ```
 SPOTIFY_CLIENT_ID=your-client-id
 SPOTIFY_CLIENT_SECRET=your-client-secret
-SPOTIFY_REDIRECT_URI=your-redirect-uri
-SPOTIFY_API_TOKEN=your-access-token
-SPOTIFY_REFRESH_TOKEN=your-refresh-token
-# Optional:
-MAX_TOOL_TOKEN_OUTPUT=50000
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8000/callback
 ```
+
+**Note**: You no longer need to manually obtain access tokens! The server will handle the OAuth flow automatically.
 
 ### 3. Install and Run the Server
 
@@ -83,14 +80,20 @@ Add the following to your MCP-compatible application's configuration (example fo
       "env": {
         "SPOTIFY_CLIENT_ID": "your-client-id",
         "SPOTIFY_CLIENT_SECRET": "your-client-secret",
-        "SPOTIFY_REDIRECT_URI": "your-redirect-uri",
-        "SPOTIFY_API_TOKEN": "your-access-token",
-        "SPOTIFY_REFRESH_TOKEN": "your-refresh-token"
+        "SPOTIFY_REDIRECT_URI": "http://127.0.0.1:8000/callback"
       }
     }
   }
 }
 ```
+
+### 5. Complete Authorization
+
+1. Call the `get_initial_context` tool in your AI application
+2. If not already authorized, you'll receive an authorization URL
+3. Open the URL in your browser and log in to Spotify
+4. Authorize the application - you'll be redirected automatically
+5. Call `get_initial_context` again to confirm the connection
 
 ---
 
@@ -138,10 +141,12 @@ Add the following to your MCP-compatible application's configuration (example fo
 |-------------------------|---------------------------------------------|----------|
 | SPOTIFY_CLIENT_ID       | Spotify client ID                           | ✅       |
 | SPOTIFY_CLIENT_SECRET   | Spotify client secret                       | ✅       |
-| SPOTIFY_REDIRECT_URI    | Spotify redirect URI                        | ✅       |
-| SPOTIFY_API_TOKEN       | Spotify access token                        | ✅       |
-| SPOTIFY_REFRESH_TOKEN   | Spotify refresh token                       | ✅       |
+| SPOTIFY_REDIRECT_URI    | Spotify redirect URI (use http://127.0.0.1:8000/callback) | ✅       |
+| SPOTIFY_API_TOKEN       | Spotify access token (obtained via OAuth)   | ❌*      |
+| SPOTIFY_REFRESH_TOKEN   | Spotify refresh token (obtained via OAuth)  | ❌*      |
 | MAX_TOOL_TOKEN_OUTPUT   | Max token output for tool responses (default 50000) | ❌       |
+
+*These tokens are automatically obtained through the OAuth flow when you first use the server.
 
 ---
 
@@ -207,6 +212,47 @@ npx @modelcontextprotocol/inspector -e SPOTIFY_CLIENT_ID=... -e SPOTIFY_CLIENT_S
 ```
 
 This provides a web interface for inspecting and testing the available tools.
+
+---
+
+## OAuth Flow
+
+The OAuth flow has been improved with the following security and usability enhancements:
+
+### Security Improvements
+- **State validation**: Uses cryptographically secure random state parameters to prevent CSRF attacks
+- **Redirect URI validation**: Ensures redirect URI uses localhost/127.0.0.1 for automatic token exchange
+- **Proper error handling**: Comprehensive error handling for all OAuth failure scenarios
+
+### Usability Improvements
+- **Automatic browser opening**: Automatically opens the authorization URL in your default browser
+- **Better user feedback**: Clear error messages and status updates throughout the process
+- **Graceful server shutdown**: Properly closes the OAuth callback server after completion
+
+### Using the OAuth Helper
+
+The `oauth-helper.js` script provides a standalone way to obtain Spotify tokens:
+
+```bash
+node src/utils/oauth-helper.js
+```
+
+This will:
+1. Validate your environment configuration
+2. Start a local callback server
+3. Automatically open your browser to the Spotify authorization page
+4. Handle the callback and exchange the code for tokens
+5. Display the tokens for you to add to your `.env` file
+
+### Environment Variables
+
+Make sure your redirect URI is configured correctly:
+
+```env
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8000/callback
+```
+
+The redirect URI **must** use `localhost` or `127.0.0.1` for the automatic token exchange to work properly.
 
 ---
 
